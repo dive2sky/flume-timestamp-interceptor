@@ -25,6 +25,7 @@ import static org.junit.Assert.assertThat;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -43,11 +44,12 @@ public class EventTimestampInterceptorTest {
 	 */
 	@Test
 	public void testBasic() throws Exception {
-		String dateFormat = "###[yyyy-MM-dd HH:mm:ss]";
+		//String dateFormat = "###[yyyy-MM-dd HH:mm:ss]";
+		String dateFormat = "yyyy-MM-dd HH:mm:s.S";
 
 		Context context = new Context();
-		context.put(Constants.DELIMITER, "|");
-		context.put(Constants.INDEX, "0");
+		context.put(Constants.DELIMITER, ",");
+		context.put(Constants.INDEX, "1");
 		context.put(Constants.FORMAT, dateFormat);
 		context.put(Constants.PRESERVE, "false");
 
@@ -55,8 +57,10 @@ public class EventTimestampInterceptorTest {
 		builder.configure(context);
 		Interceptor interceptor = builder.build();
 
+		//Event event = EventBuilder.withBody(
+		//		"###[1979-07-21 00:00:00]|test event", Charsets.UTF_8);
 		Event event = EventBuilder.withBody(
-				"###[1979-07-21 00:00:00]|test event", Charsets.UTF_8);
+				"20019,2014-12-16 10:10:1.305,1,0,0,0,0,0,0,0,0,0,0,,16788173,331073,1115,0,0,0,", Charsets.UTF_8);
 		assertThat(event.getHeaders().get(Constants.TIMESTAMP), is(nullValue()));
 
 		event = interceptor.intercept(event);
@@ -64,9 +68,11 @@ public class EventTimestampInterceptorTest {
 		long timestamp = Long.parseLong(timestampStr);
 
 		SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
+		dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT+9"));
 		String formattedDate = dateFormatter.format(new Date(timestamp));
 		System.out.println(formattedDate);
-		assertThat(formattedDate, is("###[1979-07-21 00:00:00]"));
+		//assertThat(formattedDate, is("###[1979-07-21 00:00:00]"));
+		assertThat(formattedDate, is("2014-12-16 10:10:1.305"));
 	}
 
 	/**
@@ -112,6 +118,9 @@ public class EventTimestampInterceptorTest {
 		long originalTs = 1L;
 		Event event = EventBuilder.withBody("1979-07-21 00:00:00|test event",
 				Charsets.UTF_8);
+		//Event event = EventBuilder.withBody("20019,2014-12-16 10:10:1.305,1,0,0,0,0,0,0,0,0,0,0,,16788173,331073,1115,0,0,0,",
+		//Charsets.UTF_8);
+
 		event.getHeaders().put(Constants.TIMESTAMP, Long.toString(originalTs));
 
 		event = interceptor.intercept(event);
