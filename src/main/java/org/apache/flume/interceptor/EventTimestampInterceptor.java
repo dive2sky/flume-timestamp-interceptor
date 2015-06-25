@@ -104,9 +104,14 @@ public class EventTimestampInterceptor implements Interceptor {
 		int end = -1;
 		int currentIndex = 0;
 		for (int i = 0; i < data.length; i++) {
+			
+			// add else if clause by dive2sky@neowiz.com
 			if (start == -1 && currentIndex == index) {
 				start = i;
+			} else if ( start != -1 && end != -1) {
+				break;
 			}
+			
 
 			for (int j = 0; j < delimiter.length; j++) {
 				if (data[i + j] == delimiter[j]) {
